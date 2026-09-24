@@ -5,3 +5,7 @@ members = ["ryzenadj", "ryzenadj-sys"]
 [workspace.package]
 license = "MPL-2.0"
 edition = "2024"
+
+[workspace.dependencies]
+ryzenadj-sys = { path = "./ryzenadj-sys" }
+ryzenadj = { path = "./ryzenadj" }

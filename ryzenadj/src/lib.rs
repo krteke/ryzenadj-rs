@@ -1,14 +1,33 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+use std::ptr::NonNull;
+
+use ryzenadj_sys as sys;
+
+use crate::error::{Error, Result};
+
+pub mod error;
+
+pub struct RyzenAdj {
+    raw: NonNull<sys::_ryzen_access>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl RyzenAdj {
+    pub fn new() -> Result<Self> {
+        let raw_ptr = unsafe { sys::init_ryzenadj() };
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        let raw = NonNull::new(raw_ptr).ok_or(Error::InitializationFailed)?;
+
+        Ok(Self { raw })
+    }
+
+    pub fn as_raw(&self) -> sys::ryzen_access {
+        self.raw.as_ptr()
+    }
+}
+
+impl Drop for RyzenAdj {
+    fn drop(&mut self) {
+        unsafe {
+            sys::cleanup_ryzenadj(self.as_raw());
+        }
     }
 }
