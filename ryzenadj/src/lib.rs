@@ -5,6 +5,9 @@ use ryzenadj_sys as sys;
 use crate::error::{Error, Result};
 
 pub mod error;
+mod family;
+
+pub use family::RyzenFamily;
 
 pub struct RyzenAdj {
     raw: NonNull<sys::_ryzen_access>,
@@ -21,6 +24,11 @@ impl RyzenAdj {
 
     pub fn as_raw(&self) -> sys::ryzen_access {
         self.raw.as_ptr()
+    }
+
+    pub fn cpu_family(&self) -> Result<RyzenFamily> {
+        let raw = unsafe { sys::get_cpu_family(self.as_raw()) };
+        RyzenFamily::try_from(raw)
     }
 }
 

@@ -7,6 +7,8 @@ pub enum Error {
     InitializationFailed,
     #[error("CPU family is unsupported")]
     UnsupportedFamily,
+    #[error("RyzenAdj returned invalid CPU family {0}")]
+    InvalidFamily(i32),
     #[error("SMU request timed out")]
     SmuTimeout,
     #[error("SMU command is unsupported")]
