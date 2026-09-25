@@ -1,9 +1,9 @@
 use core::slice;
 
 use crate::{
-    RyzenAdj,
+    NanExt, RyzenAdj,
     error::{Result, StatusCode},
-    table::reading::{PowerLimitReading, TemperatureLimitReading},
+    table::reading::{CurrentLimitReading, PowerLimitReading, TemperatureLimitReading},
 };
 use ryzenadj_sys as sys;
 
@@ -69,13 +69,13 @@ impl PowerTable<'_> {
     /// Returns the STAPM time constant in seconds, when available.
     pub fn stapm_time(&self) -> Option<f32> {
         let seconds = unsafe { sys::get_stapm_time(self.owner.as_raw()) };
-        (!seconds.is_nan()).then_some(seconds)
+        seconds.none_if_nan()
     }
 
     /// Returns the slow PPT time constant in seconds, when available.
     pub fn slow_ppt_time(&self) -> Option<f32> {
         let seconds = unsafe { sys::get_slow_time(self.owner.as_raw()) };
-        (!seconds.is_nan()).then_some(seconds)
+        seconds.none_if_nan()
     }
 
     /// Returns the Tctl limit and measured temperature.
@@ -89,11 +89,59 @@ impl PowerTable<'_> {
             )
         }
     }
+
+    /// Returns the VDD TDC current limit and measured current in amperes.
+    pub fn tdc_vdd(&self) -> CurrentLimitReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            CurrentLimitReading::from_raw(
+                sys::get_vrm_current(raw),
+                sys::get_vrm_current_value(raw),
+            )
+        }
+    }
+
+    /// Returns the SoC TDC current limit and measured current in amperes.
+    pub fn tdc_soc(&self) -> CurrentLimitReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            CurrentLimitReading::from_raw(
+                sys::get_vrmsoc_current(raw),
+                sys::get_vrmsoc_current_value(raw),
+            )
+        }
+    }
+
+    /// Returns the VDD EDC current limit and measured current in amperes.
+    pub fn edc_vdd(&self) -> CurrentLimitReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            CurrentLimitReading::from_raw(
+                sys::get_vrmmax_current(raw),
+                sys::get_vrmmax_current_value(raw),
+            )
+        }
+    }
+
+    /// Returns the SoC EDC current limit and measured current in amperes.
+    pub fn edc_soc(&self) -> CurrentLimitReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            CurrentLimitReading::from_raw(
+                sys::get_vrmsocmax_current(raw),
+                sys::get_vrmsocmax_current_value(raw),
+            )
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::TemperatureLimitReading;
+    use super::{CurrentLimitReading, TemperatureLimitReading};
 
     #[test]
     fn temperature_fields_are_independently_available() {
@@ -104,5 +152,20 @@ mod tests {
         let only_limit = TemperatureLimitReading::from_raw(95.0, f32::NAN);
         assert_eq!(only_limit.limit, Some(95.0));
         assert_eq!(only_limit.measured, None);
+    }
+
+    #[test]
+    fn current_fields_are_independently_available() {
+        let only_measured = CurrentLimitReading::from_raw(f32::NAN, 7.5);
+        assert_eq!(only_measured.limit, None);
+        assert_eq!(only_measured.measured, Some(7.5));
+
+        let only_limit = CurrentLimitReading::from_raw(54.0, f32::NAN);
+        assert_eq!(only_limit.limit, Some(54.0));
+        assert_eq!(only_limit.measured, None);
+
+        let zero = CurrentLimitReading::from_raw(0.0, 0.0);
+        assert_eq!(zero.limit, Some(0.0));
+        assert_eq!(zero.measured, Some(0.0));
     }
 }
