@@ -2,7 +2,7 @@ use crate::{
     error::{Error, Result, StatusCode},
     family::RyzenFamily,
     table::PowerTable,
-    types::{DegreesCelsius, Milliamps, Milliwatts, Seconds},
+    types::{DegreesCelsius, Megahertz, Milliamps, Milliwatts, Seconds},
 };
 use ryzenadj_sys as sys;
 use std::{
@@ -171,6 +171,56 @@ impl RyzenAdj {
     /// Sends the PSI3 GFX current limit without refreshing the PM table.
     pub fn set_psi3_gfx_limit(&mut self, limit: Milliamps) -> Result<()> {
         unsafe { sys::set_psi3gfx_current(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends the minimum GFX clock without refreshing the PM table.
+    pub fn set_gfx_clock_min(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_min_gfxclk_freq(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends the maximum GFX clock without refreshing the PM table.
+    pub fn set_gfx_clock_max(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_max_gfxclk_freq(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends the minimum SoC clock without refreshing the PM table.
+    pub fn set_soc_clock_min(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_min_socclk_freq(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends the maximum SoC clock without refreshing the PM table.
+    pub fn set_soc_clock_max(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_max_socclk_freq(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends the minimum FCLK without refreshing the PM table.
+    pub fn set_fclk_min(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_min_fclk_freq(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends the maximum FCLK without refreshing the PM table.
+    pub fn set_fclk_max(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_max_fclk_freq(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends the minimum VCN clock without refreshing the PM table.
+    pub fn set_vcn_clock_min(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_min_vcn(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends the maximum VCN clock without refreshing the PM table.
+    pub fn set_vcn_clock_max(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_max_vcn(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends the minimum LCLK without refreshing the PM table.
+    pub fn set_lclk_min(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_min_lclk(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends the maximum LCLK without refreshing the PM table.
+    pub fn set_lclk_max(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_max_lclk(self.as_raw(), frequency.0) }.check()
     }
 
     fn as_raw(&self) -> sys::ryzen_access {
