@@ -5,6 +5,8 @@ use thiserror::Error;
 pub enum Error {
     #[error("RyzenAdj initialization failed")]
     InitializationFailed,
+    #[error("RyzenAdj is already in use")]
+    AlreadyInUse,
     #[error("CPU family is unsupported")]
     UnsupportedFamily,
     #[error("SMU request timed out")]

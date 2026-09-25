@@ -7,13 +7,14 @@ use crate::{
 use ryzenadj_sys as sys;
 
 pub struct PowerTable<'a> {
-    owner: &'a mut RyzenAdj,
+    pub(super) owner: &'a mut RyzenAdj,
 }
 
-impl<'a> From<&'a mut RyzenAdj> for PowerTable<'a> {
-    fn from(owner: &'a mut RyzenAdj) -> Self {
-        Self { owner }
-    }
+/// A power limit and its corresponding PM Table reading, in `watts`.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PowerLimitReading {
+    pub limit: f32,
+    pub measured: f32,
 }
 
 impl PowerTable<'_> {
@@ -31,5 +32,41 @@ impl PowerTable<'_> {
         let bytes = unsafe { sys::get_table_size(self.owner.as_raw()) };
 
         unsafe { slice::from_raw_parts(ptr, bytes / size_of::<f32>()) }
+    }
+
+    /// Returns the STAPM limit and its reported power.
+    pub fn stapm(&self) -> PowerLimitReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            PowerLimitReading {
+                limit: sys::get_stapm_limit(raw),
+                measured: sys::get_stapm_value(raw),
+            }
+        }
+    }
+
+    /// Returns the fast PPT limit and its reported power.
+    pub fn fast_ppt(&self) -> PowerLimitReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            PowerLimitReading {
+                limit: sys::get_fast_limit(raw),
+                measured: sys::get_fast_value(raw),
+            }
+        }
+    }
+
+    /// Returns the slow PPT limit and its reported power.
+    pub fn slow_ppt(&self) -> PowerLimitReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            PowerLimitReading {
+                limit: sys::get_slow_limit(raw),
+                measured: sys::get_slow_value(raw),
+            }
+        }
     }
 }
