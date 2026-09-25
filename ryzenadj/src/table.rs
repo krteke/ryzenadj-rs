@@ -3,18 +3,14 @@ use core::slice;
 use crate::{
     RyzenAdj,
     error::{Result, StatusCode},
+    table::reading::{PowerLimitReading, TemperatureLimitReading},
 };
 use ryzenadj_sys as sys;
 
+pub mod reading;
+
 pub struct PowerTable<'a> {
     pub(super) owner: &'a mut RyzenAdj,
-}
-
-/// A power limit and its corresponding PM Table reading, in `watts`.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct PowerLimitReading {
-    pub limit: f32,
-    pub measured: f32,
 }
 
 impl PowerTable<'_> {
@@ -68,5 +64,45 @@ impl PowerTable<'_> {
                 measured: sys::get_slow_value(raw),
             }
         }
+    }
+
+    /// Returns the STAPM time constant in seconds, when available.
+    pub fn stapm_time(&self) -> Option<f32> {
+        let seconds = unsafe { sys::get_stapm_time(self.owner.as_raw()) };
+        (!seconds.is_nan()).then_some(seconds)
+    }
+
+    /// Returns the slow PPT time constant in seconds, when available.
+    pub fn slow_ppt_time(&self) -> Option<f32> {
+        let seconds = unsafe { sys::get_slow_time(self.owner.as_raw()) };
+        (!seconds.is_nan()).then_some(seconds)
+    }
+
+    /// Returns the Tctl limit and measured temperature.
+    pub fn tctl_temperature(&self) -> TemperatureLimitReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            TemperatureLimitReading::from_raw(
+                sys::get_tctl_temp(raw),
+                sys::get_tctl_temp_value(raw),
+            )
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::TemperatureLimitReading;
+
+    #[test]
+    fn temperature_fields_are_independently_available() {
+        let only_measured = TemperatureLimitReading::from_raw(f32::NAN, 72.0);
+        assert_eq!(only_measured.limit, None);
+        assert_eq!(only_measured.measured, Some(72.0));
+
+        let only_limit = TemperatureLimitReading::from_raw(95.0, f32::NAN);
+        assert_eq!(only_limit.limit, Some(95.0));
+        assert_eq!(only_limit.measured, None);
     }
 }

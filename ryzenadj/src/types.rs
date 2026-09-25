@@ -1,0 +1,10 @@
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Milliwatts(pub u32);
+
+/// An integer number of seconds for an SMU time constant.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Seconds(pub u32);
+
+/// A temperature in whole degrees Celsius.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DegreesCelsius(pub u32);

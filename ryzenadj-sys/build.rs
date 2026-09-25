@@ -83,7 +83,7 @@ fn build_static_windows() {
         );
     }
 
-    let mut core = common_c_build();
+    let core = common_c_build();
 
     core.compile("ryzenadj_core");
 

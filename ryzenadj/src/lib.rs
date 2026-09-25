@@ -2,6 +2,7 @@ use crate::{
     error::{Error, Result, StatusCode},
     family::RyzenFamily,
     table::PowerTable,
+    types::{DegreesCelsius, Milliwatts, Seconds},
 };
 use ryzenadj_sys as sys;
 use std::{
@@ -12,9 +13,7 @@ use std::{
 pub mod error;
 pub mod family;
 pub mod table;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Milliwatts(pub u32);
+pub mod types;
 
 static INSTANCE_IN_USE: AtomicBool = AtomicBool::new(false);
 
@@ -82,6 +81,21 @@ impl RyzenAdj {
     /// Sends a slow PPT limit without refreshing the PM table.
     pub fn set_slow_ppt_limit(&mut self, limit: Milliwatts) -> Result<()> {
         unsafe { sys::set_slow_limit(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends a STAPM time constant without refreshing the PM table.
+    pub fn set_stapm_time(&mut self, time: Seconds) -> Result<()> {
+        unsafe { sys::set_stapm_time(self.as_raw(), time.0) }.check()
+    }
+
+    /// Sends a slow PPT time constant without refreshing the PM table.
+    pub fn set_slow_ppt_time(&mut self, time: Seconds) -> Result<()> {
+        unsafe { sys::set_slow_time(self.as_raw(), time.0) }.check()
+    }
+
+    /// Sends a Tctl temperature limit without refreshing the PM table.
+    pub fn set_tctl_temperature_limit(&mut self, limit: DegreesCelsius) -> Result<()> {
+        unsafe { sys::set_tctl_temp(self.as_raw(), limit.0) }.check()
     }
 
     fn as_raw(&self) -> sys::ryzen_access {
