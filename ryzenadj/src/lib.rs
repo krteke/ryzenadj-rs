@@ -128,6 +128,16 @@ impl RyzenAdj {
         unsafe { sys::set_vrmsoc_current(self.as_raw(), limit.0) }.check()
     }
 
+    /// Sends the GFX TDC current limit without refreshing the PM table.
+    pub fn set_tdc_gfx_limit(&mut self, limit: Milliamps) -> Result<()> {
+        unsafe { sys::set_vrmgfx_current(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends the CVIP TDC current limit without refreshing the PM table.
+    pub fn set_tdc_cvip_limit(&mut self, limit: Milliamps) -> Result<()> {
+        unsafe { sys::set_vrmcvip_current(self.as_raw(), limit.0) }.check()
+    }
+
     /// Sends the VDD EDC current limit without refreshing the PM table.
     pub fn set_edc_vdd_limit(&mut self, limit: Milliamps) -> Result<()> {
         unsafe { sys::set_vrmmax_current(self.as_raw(), limit.0) }.check()
@@ -136,6 +146,11 @@ impl RyzenAdj {
     /// Sends the SoC EDC current limit without refreshing the PM table.
     pub fn set_edc_soc_limit(&mut self, limit: Milliamps) -> Result<()> {
         unsafe { sys::set_vrmsocmax_current(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends the GFX EDC current limit without refreshing the PM table.
+    pub fn set_edc_gfx_limit(&mut self, limit: Milliamps) -> Result<()> {
+        unsafe { sys::set_vrmgfxmax_current(self.as_raw(), limit.0) }.check()
     }
 
     /// Sends the PSI0 VDD current limit without refreshing the PM table.
