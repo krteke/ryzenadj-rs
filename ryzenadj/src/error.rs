@@ -7,8 +7,6 @@ pub enum Error {
     InitializationFailed,
     #[error("CPU family is unsupported")]
     UnsupportedFamily,
-    #[error("RyzenAdj returned invalid CPU family {0}")]
-    InvalidFamily(i32),
     #[error("SMU request timed out")]
     SmuTimeout,
     #[error("SMU command is unsupported")]
@@ -23,16 +21,14 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-impl Error {
-    pub(crate) fn from_status(status: i32) -> Result<()> {
-        match status {
-            0 => Ok(()),
-            sys::ADJ_ERR_FAM_UNSUPPORTED => Err(Error::UnsupportedFamily),
-            sys::ADJ_ERR_SMU_TIMEOUT => Err(Error::SmuTimeout),
-            sys::ADJ_ERR_SMU_UNSUPPORTED => Err(Error::SmuUnsupported),
-            sys::ADJ_ERR_SMU_REJECTED => Err(Error::SmuRejected),
-            sys::ADJ_ERR_MEMORY_ACCESS => Err(Error::MemoryAccess),
-            code => Err(Error::UnknownStatus(code)),
-        }
+pub(crate) fn check_code(code: i32) -> Result<()> {
+    match code {
+        0 => Ok(()),
+        sys::ADJ_ERR_FAM_UNSUPPORTED => Err(Error::UnsupportedFamily),
+        sys::ADJ_ERR_SMU_TIMEOUT => Err(Error::SmuTimeout),
+        sys::ADJ_ERR_SMU_UNSUPPORTED => Err(Error::SmuUnsupported),
+        sys::ADJ_ERR_SMU_REJECTED => Err(Error::SmuRejected),
+        sys::ADJ_ERR_MEMORY_ACCESS => Err(Error::MemoryAccess),
+        code => Err(Error::UnknownStatus(code)),
     }
 }

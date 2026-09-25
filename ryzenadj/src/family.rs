@@ -1,7 +1,5 @@
 use ryzenadj_sys as sys;
 
-use crate::error::{Error, Result};
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RyzenFamily {
     Raven,
@@ -20,31 +18,29 @@ pub enum RyzenFamily {
     StrixPoint,
     StrixHalo,
     FireRange,
+    Unknown(i32),
 }
 
-impl TryFrom<sys::ryzen_family> for RyzenFamily {
-    type Error = Error;
-
-    fn try_from(raw: sys::ryzen_family) -> Result<Self> {
+impl RyzenFamily {
+    pub(crate) fn from_raw(raw: sys::ryzen_family) -> Self {
         match raw {
-            sys::ryzen_family_FAM_RAVEN => Ok(Self::Raven),
-            sys::ryzen_family_FAM_PICASSO => Ok(Self::Picasso),
-            sys::ryzen_family_FAM_RENOIR => Ok(Self::Renoir),
-            sys::ryzen_family_FAM_CEZANNE => Ok(Self::Cezanne),
-            sys::ryzen_family_FAM_DALI => Ok(Self::Dali),
-            sys::ryzen_family_FAM_LUCIENNE => Ok(Self::Lucienne),
-            sys::ryzen_family_FAM_VANGOGH => Ok(Self::VanGogh),
-            sys::ryzen_family_FAM_REMBRANDT => Ok(Self::Rembrandt),
-            sys::ryzen_family_FAM_MENDOCINO => Ok(Self::Mendocino),
-            sys::ryzen_family_FAM_PHOENIX => Ok(Self::Phoenix),
-            sys::ryzen_family_FAM_HAWKPOINT => Ok(Self::HawkPoint),
-            sys::ryzen_family_FAM_DRAGONRANGE => Ok(Self::DragonRange),
-            sys::ryzen_family_FAM_KRACKANPOINT => Ok(Self::KrackanPoint),
-            sys::ryzen_family_FAM_STRIXPOINT => Ok(Self::StrixPoint),
-            sys::ryzen_family_FAM_STRIXHALO => Ok(Self::StrixHalo),
-            sys::ryzen_family_FAM_FIRERANGE => Ok(Self::FireRange),
-            sys::ryzen_family_FAM_UNKNOWN => Err(Error::UnsupportedFamily),
-            code => Err(Error::InvalidFamily(code)),
+            sys::ryzen_family_FAM_RAVEN => Self::Raven,
+            sys::ryzen_family_FAM_PICASSO => Self::Picasso,
+            sys::ryzen_family_FAM_RENOIR => Self::Renoir,
+            sys::ryzen_family_FAM_CEZANNE => Self::Cezanne,
+            sys::ryzen_family_FAM_DALI => Self::Dali,
+            sys::ryzen_family_FAM_LUCIENNE => Self::Lucienne,
+            sys::ryzen_family_FAM_VANGOGH => Self::VanGogh,
+            sys::ryzen_family_FAM_REMBRANDT => Self::Rembrandt,
+            sys::ryzen_family_FAM_MENDOCINO => Self::Mendocino,
+            sys::ryzen_family_FAM_PHOENIX => Self::Phoenix,
+            sys::ryzen_family_FAM_HAWKPOINT => Self::HawkPoint,
+            sys::ryzen_family_FAM_DRAGONRANGE => Self::DragonRange,
+            sys::ryzen_family_FAM_KRACKANPOINT => Self::KrackanPoint,
+            sys::ryzen_family_FAM_STRIXPOINT => Self::StrixPoint,
+            sys::ryzen_family_FAM_STRIXHALO => Self::StrixHalo,
+            sys::ryzen_family_FAM_FIRERANGE => Self::FireRange,
+            raw => Self::Unknown(raw),
         }
     }
 }

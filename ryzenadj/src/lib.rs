@@ -1,13 +1,14 @@
+use crate::{
+    error::{Error, Result, check_code},
+    family::RyzenFamily,
+    table::PowerTable,
+};
+use ryzenadj_sys as sys;
 use std::ptr::NonNull;
 
-use ryzenadj_sys as sys;
-
-use crate::error::{Error, Result};
-
 pub mod error;
-mod family;
-
-pub use family::RyzenFamily;
+pub mod family;
+pub mod table;
 
 pub struct RyzenAdj {
     raw: NonNull<sys::_ryzen_access>,
@@ -22,13 +23,20 @@ impl RyzenAdj {
         Ok(Self { raw })
     }
 
-    pub fn as_raw(&self) -> sys::ryzen_access {
-        self.raw.as_ptr()
+    pub fn cpu_family(&self) -> RyzenFamily {
+        let raw = unsafe { sys::get_cpu_family(self.as_raw()) };
+
+        RyzenFamily::from_raw(raw)
     }
 
-    pub fn cpu_family(&self) -> Result<RyzenFamily> {
-        let raw = unsafe { sys::get_cpu_family(self.as_raw()) };
-        RyzenFamily::try_from(raw)
+    pub fn power_table(&mut self) -> Result<PowerTable<'_>> {
+        check_code(unsafe { sys::refresh_table(self.as_raw()) })?;
+
+        Ok(PowerTable::from(self))
+    }
+
+    fn as_raw(&self) -> sys::ryzen_access {
+        self.raw.as_ptr()
     }
 }
 
