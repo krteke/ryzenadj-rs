@@ -2,7 +2,7 @@ use core::slice;
 
 use crate::{
     RyzenAdj,
-    error::{Result, check_code},
+    error::{Result, StatusCode},
 };
 use ryzenadj_sys as sys;
 
@@ -19,7 +19,7 @@ pub struct PowerLimitReading {
 
 impl PowerTable<'_> {
     pub fn refresh(&mut self) -> Result<()> {
-        check_code(unsafe { sys::refresh_table(self.owner.as_raw()) })
+        unsafe { sys::refresh_table(self.owner.as_raw()) }.check()
     }
 
     pub fn version(&self) -> u32 {

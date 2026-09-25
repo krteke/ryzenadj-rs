@@ -1,5 +1,5 @@
 use crate::{
-    error::{Error, Result, check_code},
+    error::{Error, Result, StatusCode},
     family::RyzenFamily,
     table::PowerTable,
 };
@@ -12,6 +12,9 @@ use std::{
 pub mod error;
 pub mod family;
 pub mod table;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Milliwatts(pub u32);
 
 static INSTANCE_IN_USE: AtomicBool = AtomicBool::new(false);
 
@@ -61,9 +64,24 @@ impl RyzenAdj {
     }
 
     pub fn power_table(&mut self) -> Result<PowerTable<'_>> {
-        check_code(unsafe { sys::refresh_table(self.as_raw()) })?;
+        unsafe { sys::refresh_table(self.as_raw()) }.check()?;
 
         Ok(PowerTable { owner: self })
+    }
+
+    /// Sends a STAPM limit without refreshing the PM table.
+    pub fn set_stapm_limit(&mut self, limit: Milliwatts) -> Result<()> {
+        unsafe { sys::set_stapm_limit(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends a fast PPT limit without refreshing the PM table.
+    pub fn set_fast_ppt_limit(&mut self, limit: Milliwatts) -> Result<()> {
+        unsafe { sys::set_fast_limit(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends a slow PPT limit without refreshing the PM table.
+    pub fn set_slow_ppt_limit(&mut self, limit: Milliwatts) -> Result<()> {
+        unsafe { sys::set_slow_limit(self.as_raw(), limit.0) }.check()
     }
 
     fn as_raw(&self) -> sys::ryzen_access {
