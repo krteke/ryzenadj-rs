@@ -155,6 +155,22 @@ impl PowerTable<'_> {
             )
         }
     }
+
+    /// Returns the raw PSI0 VDD limit from the PM table, when available, .
+    ///
+    /// The unit is unknown, it could be `A` or `mA`.
+    pub fn psi0_vdd_limit(&self) -> Option<f32> {
+        let value = unsafe { sys::get_psi0_current(self.owner.as_raw()) };
+        value.none_if_nan()
+    }
+
+    /// Returns the raw PSI0 SoC limit from the PM table, when available.
+    ///
+    /// The unit is unknown, it could be `A` or `mA`.
+    pub fn psi0_soc_limit(&self) -> Option<f32> {
+        let value = unsafe { sys::get_psi0soc_current(self.owner.as_raw()) };
+        value.none_if_nan()
+    }
 }
 
 #[cfg(test)]

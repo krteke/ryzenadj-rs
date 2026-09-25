@@ -138,6 +138,26 @@ impl RyzenAdj {
         unsafe { sys::set_vrmsocmax_current(self.as_raw(), limit.0) }.check()
     }
 
+    /// Sends the PSI0 VDD current limit without refreshing the PM table.
+    pub fn set_psi0_vdd_limit(&mut self, limit: Milliamps) -> Result<()> {
+        unsafe { sys::set_psi0_current(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends the PSI0 SoC current limit without refreshing the PM table.
+    pub fn set_psi0_soc_limit(&mut self, limit: Milliamps) -> Result<()> {
+        unsafe { sys::set_psi0soc_current(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends the PSI3 CPU current limit without refreshing the PM table.
+    pub fn set_psi3_cpu_limit(&mut self, limit: Milliamps) -> Result<()> {
+        unsafe { sys::set_psi3cpu_current(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends the PSI3 GFX current limit without refreshing the PM table.
+    pub fn set_psi3_gfx_limit(&mut self, limit: Milliamps) -> Result<()> {
+        unsafe { sys::set_psi3gfx_current(self.as_raw(), limit.0) }.check()
+    }
+
     fn as_raw(&self) -> sys::ryzen_access {
         self.raw.as_ptr()
     }
