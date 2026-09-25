@@ -34,35 +34,29 @@ impl PowerTable<'_> {
     pub fn stapm(&self) -> PowerLimitReading {
         let raw = self.owner.as_raw();
 
-        unsafe {
-            PowerLimitReading {
-                limit: sys::get_stapm_limit(raw),
-                measured: sys::get_stapm_value(raw),
-            }
-        }
+        unsafe { PowerLimitReading::from_raw(sys::get_stapm_limit(raw), sys::get_stapm_value(raw)) }
     }
 
     /// Returns the fast PPT limit and its reported power.
     pub fn fast_ppt(&self) -> PowerLimitReading {
         let raw = self.owner.as_raw();
 
-        unsafe {
-            PowerLimitReading {
-                limit: sys::get_fast_limit(raw),
-                measured: sys::get_fast_value(raw),
-            }
-        }
+        unsafe { PowerLimitReading::from_raw(sys::get_fast_limit(raw), sys::get_fast_value(raw)) }
     }
 
     /// Returns the slow PPT limit and its reported power.
     pub fn slow_ppt(&self) -> PowerLimitReading {
         let raw = self.owner.as_raw();
 
+        unsafe { PowerLimitReading::from_raw(sys::get_slow_limit(raw), sys::get_slow_value(raw)) }
+    }
+
+    /// Returns the APU slow PPT limit and its reported power in watts.
+    pub fn apu_slow_ppt(&self) -> PowerLimitReading {
+        let raw = self.owner.as_raw();
+
         unsafe {
-            PowerLimitReading {
-                limit: sys::get_slow_limit(raw),
-                measured: sys::get_slow_value(raw),
-            }
+            PowerLimitReading::from_raw(sys::get_apu_slow_limit(raw), sys::get_apu_slow_value(raw))
         }
     }
 
@@ -86,6 +80,30 @@ impl PowerTable<'_> {
             TemperatureLimitReading::from_raw(
                 sys::get_tctl_temp(raw),
                 sys::get_tctl_temp_value(raw),
+            )
+        }
+    }
+
+    /// Returns the APU STT limit and temperature.
+    pub fn apu_skin_temperature(&self) -> TemperatureLimitReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            TemperatureLimitReading::from_raw(
+                sys::get_apu_skin_temp_limit(raw),
+                sys::get_apu_skin_temp_value(raw),
+            )
+        }
+    }
+
+    /// Returns the dGPU STT limit and temperature.
+    pub fn dgpu_skin_temperature(&self) -> TemperatureLimitReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            TemperatureLimitReading::from_raw(
+                sys::get_dgpu_skin_temp_limit(raw),
+                sys::get_dgpu_skin_temp_value(raw),
             )
         }
     }
@@ -141,7 +159,22 @@ impl PowerTable<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::{CurrentLimitReading, TemperatureLimitReading};
+    use super::{CurrentLimitReading, PowerLimitReading, TemperatureLimitReading};
+
+    #[test]
+    fn power_fields_are_independently_available() {
+        let only_measured = PowerLimitReading::from_raw(f32::NAN, 35.0);
+        assert_eq!(only_measured.limit, None);
+        assert_eq!(only_measured.measured, Some(35.0));
+
+        let only_limit = PowerLimitReading::from_raw(45.0, f32::NAN);
+        assert_eq!(only_limit.limit, Some(45.0));
+        assert_eq!(only_limit.measured, None);
+
+        let zero = PowerLimitReading::from_raw(0.0, 0.0);
+        assert_eq!(zero.limit, Some(0.0));
+        assert_eq!(zero.measured, Some(0.0));
+    }
 
     #[test]
     fn temperature_fields_are_independently_available() {
@@ -152,6 +185,10 @@ mod tests {
         let only_limit = TemperatureLimitReading::from_raw(95.0, f32::NAN);
         assert_eq!(only_limit.limit, Some(95.0));
         assert_eq!(only_limit.measured, None);
+
+        let zero = TemperatureLimitReading::from_raw(0.0, 0.0);
+        assert_eq!(zero.limit, Some(0.0));
+        assert_eq!(zero.measured, Some(0.0));
     }
 
     #[test]

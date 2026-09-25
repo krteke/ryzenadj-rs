@@ -83,6 +83,11 @@ impl RyzenAdj {
         unsafe { sys::set_slow_limit(self.as_raw(), limit.0) }.check()
     }
 
+    /// Sends an APU slow PPT limit without refreshing the PM table.
+    pub fn set_apu_slow_ppt_limit(&mut self, limit: Milliwatts) -> Result<()> {
+        unsafe { sys::set_apu_slow_limit(self.as_raw(), limit.0) }.check()
+    }
+
     /// Sends a STAPM time constant without refreshing the PM table.
     pub fn set_stapm_time(&mut self, time: Seconds) -> Result<()> {
         unsafe { sys::set_stapm_time(self.as_raw(), time.0) }.check()
@@ -96,6 +101,21 @@ impl RyzenAdj {
     /// Sends a Tctl temperature limit without refreshing the PM table.
     pub fn set_tctl_temperature_limit(&mut self, limit: DegreesCelsius) -> Result<()> {
         unsafe { sys::set_tctl_temp(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends an APU STT limit without refreshing the PM table.
+    pub fn set_apu_skin_temperature_limit(&mut self, limit: DegreesCelsius) -> Result<()> {
+        unsafe { sys::set_apu_skin_temp_limit(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends a dGPU STT limit without refreshing the PM table.
+    pub fn set_dgpu_skin_temperature_limit(&mut self, limit: DegreesCelsius) -> Result<()> {
+        unsafe { sys::set_dgpu_skin_temp_limit(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends a skin temperature power limit without refreshing the PM table.
+    pub fn set_skin_temperature_power_limit(&mut self, limit: Milliwatts) -> Result<()> {
+        unsafe { sys::set_skin_temp_power_limit(self.as_raw(), limit.0) }.check()
     }
 
     /// Sends the VDD TDC current limit without refreshing the PM table.
