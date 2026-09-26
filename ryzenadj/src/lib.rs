@@ -2,7 +2,9 @@ use crate::{
     error::{Error, Result, StatusCode},
     family::RyzenFamily,
     table::PowerTable,
-    types::{DegreesCelsius, Megahertz, Milliamps, Milliwatts, PerformancePreference, Seconds},
+    types::{
+        DegreesCelsius, Megahertz, Milliamps, Milliwatts, OcVid, PerformancePreference, Seconds,
+    },
 };
 use ryzenadj_sys as sys;
 use std::{
@@ -221,6 +223,21 @@ impl RyzenAdj {
     /// Sends the maximum LCLK without refreshing the PM table.
     pub fn set_lclk_max(&mut self, frequency: Megahertz) -> Result<()> {
         unsafe { sys::set_max_lclk(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends a forced GFX clock in MHz without refreshing the PM table.
+    pub fn set_gfx_clock(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_gfx_clk(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends a forced OC clock for all cores in MHz without refreshing the PM table.
+    pub fn set_oc_clock(&mut self, frequency: Megahertz) -> Result<()> {
+        unsafe { sys::set_oc_clk(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends a core OC VID code without refreshing the PM table.
+    pub fn set_oc_vid(&mut self, vid: OcVid) -> Result<()> {
+        unsafe { sys::set_oc_volt(self.as_raw(), vid.0) }.check()
     }
 
     /// Sends a performance preference without refreshing the PM table.
