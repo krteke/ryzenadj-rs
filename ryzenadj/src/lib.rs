@@ -3,7 +3,7 @@ use crate::{
     family::RyzenFamily,
     table::PowerTable,
     types::{
-        CurveOptimizerOffset, DegreesCelsius, Megahertz, Milliamps, Milliwatts, OcVid,
+        CoreAddress, CurveOptimizerOffset, DegreesCelsius, Megahertz, Milliamps, Milliwatts, OcVid,
         PerformancePreference, ProchotDeassertionRamp, Seconds,
     },
 };
@@ -250,6 +250,17 @@ impl RyzenAdj {
         unsafe { sys::set_oc_clk(self.as_raw(), frequency.0) }.check()
     }
 
+    /// Sends a forced OC clock for one core without refreshing the PM table.
+    ///
+    /// The MHz value occupies the low 20 bits, following
+    /// [ZenStates-Core's encoding](https://github.com/irusanov/ZenStates-Core/blob/d08e0ac3e0e9ca26f740d39468405205d161d1ae/Hardware/Smu/Commands/SetFrequencySingleCore.cs#L6-L17).
+    /// Returns [`Error::PerCoreOcClockOutOfRange`] before sending a request if the
+    /// value exceeds `0xF_FFFF`.
+    pub fn set_per_core_oc_clock(&mut self, core: CoreAddress, frequency: Megahertz) -> Result<()> {
+        let value = core.encode_oc_clock(frequency)?;
+        unsafe { sys::set_per_core_oc_clk(self.as_raw(), value) }.check()
+    }
+
     /// Sends a core OC VID code without refreshing the PM table.
     pub fn set_oc_vid(&mut self, vid: OcVid) -> Result<()> {
         unsafe { sys::set_oc_volt(self.as_raw(), vid.0) }.check()
@@ -281,6 +292,21 @@ impl RyzenAdj {
     /// Sends a Curve Optimizer offset for all CPU cores without refreshing the PM table.
     pub fn set_all_core_curve_optimizer(&mut self, offset: CurveOptimizerOffset) -> Result<()> {
         unsafe { sys::set_coall(self.as_raw(), offset.0 as u32) }.check()
+    }
+
+    /// Sends a Curve Optimizer offset for one core without refreshing the PM table.
+    ///
+    /// Encodes the offset as a signed 16-bit value, leaving bits 19–16 zero,
+    /// following [ZenStates-Core's encoding](https://github.com/irusanov/ZenStates-Core/blob/d08e0ac3e0e9ca26f740d39468405205d161d1ae/Hardware/Smu/Commands/SetPsmMarginSingleCore.cs#L3-L25).
+    /// Returns [`Error::PerCoreCurveOptimizerOffsetOutOfRange`] before sending a
+    /// request if the offset is outside `i16::MIN..=i16::MAX`.
+    pub fn set_per_core_curve_optimizer(
+        &mut self,
+        core: CoreAddress,
+        offset: CurveOptimizerOffset,
+    ) -> Result<()> {
+        let value = core.encode_curve_optimizer(offset)?;
+        unsafe { sys::set_coper(self.as_raw(), value) }.check()
     }
 
     /// Sends a GFX Curve Optimizer offset without refreshing the PM table.

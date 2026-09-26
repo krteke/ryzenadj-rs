@@ -7,6 +7,14 @@ pub enum Error {
     InitializationFailed,
     #[error("RyzenAdj is already in use")]
     AlreadyInUse,
+    #[error(
+        "invalid core address (CCD {ccd}, CCX {ccx}, core {core}): each index must be in 0..=15"
+    )]
+    InvalidCoreAddress { ccd: u8, ccx: u8, core: u8 },
+    #[error("per-core Curve Optimizer offset {0} is outside -32768..=32767")]
+    PerCoreCurveOptimizerOffsetOutOfRange(i32),
+    #[error("per-core OC clock {0} MHz exceeds the 20-bit field maximum of 1048575 MHz")]
+    PerCoreOcClockOutOfRange(u32),
     #[error("CPU family is unsupported")]
     UnsupportedFamily,
     #[error("SMU request timed out")]
