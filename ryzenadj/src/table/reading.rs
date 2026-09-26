@@ -47,3 +47,41 @@ impl CurrentLimitReading {
         }
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GfxReading {
+    pub clock: Option<f32>,
+    pub voltage: Option<f32>,
+    /// The Strix Point C getter uses an offset described as an unknown clock.
+    pub temperature: Option<f32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SocReading {
+    pub power: Option<f32>,
+    pub voltage: Option<f32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct L3Reading {
+    pub clock: Option<f32>,
+    pub logic: Option<f32>,
+    pub vddm: Option<f32>,
+    pub temperature: Option<f32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FabricMemoryReading {
+    /// On Van Gogh, the C FCLK and memory offsets resolve to the same float slot.
+    pub fabric_clock: Option<f32>,
+    /// MT/s ?
+    pub memory_clock: Option<f32>,
+}
+
+/// CCLK boost
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CclkReading {
+    /// On Strix Point, C uses the same table offset as `get_socket_power`.
+    pub setpoint: Option<f32>,
+    pub busy: Option<f32>,
+}

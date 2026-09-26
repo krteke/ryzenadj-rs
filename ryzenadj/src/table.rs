@@ -3,7 +3,10 @@ use core::slice;
 use crate::{
     NanExt, RyzenAdj,
     error::{Result, StatusCode},
-    table::reading::{CurrentLimitReading, PowerLimitReading, TemperatureLimitReading},
+    table::reading::{
+        CclkReading, CurrentLimitReading, FabricMemoryReading, GfxReading, L3Reading,
+        PowerLimitReading, SocReading, TemperatureLimitReading,
+    },
 };
 use ryzenadj_sys as sys;
 
@@ -169,6 +172,75 @@ impl PowerTable<'_> {
     /// The unit is unknown, it could be `A` or `mA`.
     pub fn psi0_soc_limit(&self) -> Option<f32> {
         let value = unsafe { sys::get_psi0soc_current(self.owner.as_raw()) };
+        value.none_if_nan()
+    }
+
+    /// Returns the CCLK boost readings from the current PM table.
+    pub fn cclk(&self) -> CclkReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            CclkReading {
+                setpoint: sys::get_cclk_setpoint(raw).none_if_nan(),
+                busy: sys::get_cclk_busy_value(raw).none_if_nan(),
+            }
+        }
+    }
+
+    /// Returns L3 readings from the current PM table.
+    pub fn l3(&self) -> L3Reading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            L3Reading {
+                clock: sys::get_l3_clk(raw).none_if_nan(),
+                logic: sys::get_l3_logic(raw).none_if_nan(),
+                vddm: sys::get_l3_vddm(raw).none_if_nan(),
+                temperature: sys::get_l3_temp(raw).none_if_nan(),
+            }
+        }
+    }
+
+    /// Returns the GFX readings from the current PM table.
+    pub fn gfx(&self) -> GfxReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            GfxReading {
+                clock: sys::get_gfx_clk(raw).none_if_nan(),
+                voltage: sys::get_gfx_volt(raw).none_if_nan(),
+                temperature: sys::get_gfx_temp(raw).none_if_nan(),
+            }
+        }
+    }
+
+    /// Returns the fabric and memory readings from the current PM table.
+    pub fn fabric_memory(&self) -> FabricMemoryReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            FabricMemoryReading {
+                fabric_clock: sys::get_fclk(raw).none_if_nan(),
+                memory_clock: sys::get_mem_clk(raw).none_if_nan(),
+            }
+        }
+    }
+
+    /// Returns the SoC readings from the current PM table.
+    pub fn soc(&self) -> SocReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            SocReading {
+                power: sys::get_soc_power(raw).none_if_nan(),
+                voltage: sys::get_soc_volt(raw).none_if_nan(),
+            }
+        }
+    }
+
+    /// Returns the socket power from the current PM table.
+    pub fn socket_power(&self) -> Option<f32> {
+        let value = unsafe { sys::get_socket_power(self.owner.as_raw()) };
         value.none_if_nan()
     }
 }
