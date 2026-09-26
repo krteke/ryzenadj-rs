@@ -16,3 +16,10 @@ pub struct Seconds(pub u32);
 /// A temperature in whole degrees Celsius.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DegreesCelsius(pub u32);
+
+/// A requested hardware performance preference.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PerformancePreference {
+    PowerSaving,
+    MaxPerformance,
+}

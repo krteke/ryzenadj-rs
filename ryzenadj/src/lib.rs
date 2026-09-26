@@ -2,7 +2,7 @@ use crate::{
     error::{Error, Result, StatusCode},
     family::RyzenFamily,
     table::PowerTable,
-    types::{DegreesCelsius, Megahertz, Milliamps, Milliwatts, Seconds},
+    types::{DegreesCelsius, Megahertz, Milliamps, Milliwatts, PerformancePreference, Seconds},
 };
 use ryzenadj_sys as sys;
 use std::{
@@ -221,6 +221,29 @@ impl RyzenAdj {
     /// Sends the maximum LCLK without refreshing the PM table.
     pub fn set_lclk_max(&mut self, frequency: Megahertz) -> Result<()> {
         unsafe { sys::set_max_lclk(self.as_raw(), frequency.0) }.check()
+    }
+
+    /// Sends a performance preference without refreshing the PM table.
+    pub fn set_performance_preference(&mut self, preference: PerformancePreference) -> Result<()> {
+        let status = unsafe {
+            match preference {
+                PerformancePreference::PowerSaving => sys::set_power_saving(self.as_raw()),
+                PerformancePreference::MaxPerformance => sys::set_max_performance(self.as_raw()),
+            }
+        };
+        status.check()
+    }
+
+    /// Requests enabling or disabling overclocking without refreshing the PM table.
+    pub fn set_overclocking_enabled(&mut self, enabled: bool) -> Result<()> {
+        let status = unsafe {
+            if enabled {
+                sys::set_enable_oc(self.as_raw())
+            } else {
+                sys::set_disable_oc(self.as_raw())
+            }
+        };
+        status.check()
     }
 
     fn as_raw(&self) -> sys::ryzen_access {
