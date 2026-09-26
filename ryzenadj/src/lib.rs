@@ -3,7 +3,8 @@ use crate::{
     family::RyzenFamily,
     table::PowerTable,
     types::{
-        DegreesCelsius, Megahertz, Milliamps, Milliwatts, OcVid, PerformancePreference, Seconds,
+        CurveOptimizerOffset, DegreesCelsius, Megahertz, Milliamps, Milliwatts, OcVid,
+        PerformancePreference, ProchotDeassertionRamp, Seconds,
     },
 };
 use ryzenadj_sys as sys;
@@ -64,6 +65,15 @@ impl RyzenAdj {
         RyzenFamily::from_raw(raw)
     }
 
+    /// Returns the raw SMU BIOS interface version.
+    ///
+    /// C caches nonzero versions; a zero value causes another query on the next
+    /// call. C ignores the SMU request status, so this cannot report whether the
+    /// query succeeded.
+    pub fn bios_interface_version(&mut self) -> i32 {
+        unsafe { sys::get_bios_if_ver(self.as_raw()) }
+    }
+
     pub fn power_table(&mut self) -> Result<PowerTable<'_>> {
         unsafe { sys::refresh_table(self.as_raw()) }.check()?;
 
@@ -118,6 +128,11 @@ impl RyzenAdj {
     /// Sends a skin temperature power limit without refreshing the PM table.
     pub fn set_skin_temperature_power_limit(&mut self, limit: Milliwatts) -> Result<()> {
         unsafe { sys::set_skin_temp_power_limit(self.as_raw(), limit.0) }.check()
+    }
+
+    /// Sends a raw PROCHOT deassertion ramp value without refreshing the PM table.
+    pub fn set_prochot_deassertion_ramp(&mut self, ramp: ProchotDeassertionRamp) -> Result<()> {
+        unsafe { sys::set_prochot_deassertion_ramp(self.as_raw(), ramp.0) }.check()
     }
 
     /// Sends the VDD TDC current limit without refreshing the PM table.
@@ -261,6 +276,16 @@ impl RyzenAdj {
             }
         };
         status.check()
+    }
+
+    /// Sends a Curve Optimizer offset for all CPU cores without refreshing the PM table.
+    pub fn set_all_core_curve_optimizer(&mut self, offset: CurveOptimizerOffset) -> Result<()> {
+        unsafe { sys::set_coall(self.as_raw(), offset.0 as u32) }.check()
+    }
+
+    /// Sends a GFX Curve Optimizer offset without refreshing the PM table.
+    pub fn set_gfx_curve_optimizer(&mut self, offset: CurveOptimizerOffset) -> Result<()> {
+        unsafe { sys::set_cogfx(self.as_raw(), offset.0 as u32) }.check()
     }
 
     fn as_raw(&self) -> sys::ryzen_access {
