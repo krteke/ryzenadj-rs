@@ -49,6 +49,14 @@ impl CurrentLimitReading {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CoreReading {
+    pub clock: Option<f32>,
+    pub voltage: Option<f32>,
+    pub power: Option<f32>,
+    pub temperature: Option<f32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct GfxReading {
     pub clock: Option<f32>,
     pub voltage: Option<f32>,

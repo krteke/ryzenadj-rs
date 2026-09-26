@@ -4,7 +4,7 @@ use crate::{
     NanExt, RyzenAdj,
     error::{Result, StatusCode},
     table::reading::{
-        CclkReading, CurrentLimitReading, FabricMemoryReading, GfxReading, L3Reading,
+        CclkReading, CoreReading, CurrentLimitReading, FabricMemoryReading, GfxReading, L3Reading,
         PowerLimitReading, SocReading, TemperatureLimitReading,
     },
 };
@@ -183,6 +183,29 @@ impl PowerTable<'_> {
             CclkReading {
                 setpoint: sys::get_cclk_setpoint(raw).none_if_nan(),
                 busy: sys::get_cclk_busy_value(raw).none_if_nan(),
+            }
+        }
+    }
+
+    /// Returns readings for a zero-based core slot in the current cached PM table.
+    ///
+    /// C returns NaN for every field when `index > 15`, or `index >= 4` for
+    /// Van Gogh (table version `0x003F0000`), resulting in all fields being `None`.
+    /// Availability also varies by field: table version `0x00400001` supports
+    /// only the power reading.
+    ///
+    /// C does not consistently check actual core counts. On Strix Point,
+    /// power at index 12 reads the same location as voltage at index 0, so
+    /// indices beyond the core array may return unrelated values.
+    pub fn core(&self, index: u32) -> CoreReading {
+        let raw = self.owner.as_raw();
+
+        unsafe {
+            CoreReading {
+                clock: sys::get_core_clk(raw, index).none_if_nan(),
+                voltage: sys::get_core_volt(raw, index).none_if_nan(),
+                power: sys::get_core_power(raw, index).none_if_nan(),
+                temperature: sys::get_core_temp(raw, index).none_if_nan(),
             }
         }
     }
