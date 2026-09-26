@@ -5,7 +5,9 @@ members = ["ryzenadj", "ryzenadj-sys"]
 [workspace.package]
 license = "MPL-2.0"
 edition = "2024"
+rust-version = "1.85"
+repository = "https://github.com/krteke/ryzenadj-rs"
 
 [workspace.dependencies]
-ryzenadj-sys = { path = "./ryzenadj-sys" }
-ryzenadj = { path = "./ryzenadj" }
+ryzenadj-sys = { path = "./ryzenadj-sys", version = "0.1.0" }
+ryzenadj = { path = "./ryzenadj", version = "0.1.0" }

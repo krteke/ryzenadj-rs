@@ -1,11 +1,21 @@
 [package]
 name = "ryzenadj"
 version = "0.1.0"
+readme = "../README.md"
+description = "Safe Rust interface to RyzenAdj"
+keywords = ["ryzen", "amd", "ryzenadj", "hardware"]
+categories = ["api-bindings", "hardware-support"]
+
 edition.workspace = true
 license.workspace = true
-readme = "../README.md"
+repository.workspace = true
+rust-version.workspace = true
 
 [dependencies]
 ryzenadj-sys.workspace = true
 
 thiserror = "2.0.21"
+
+[features]
+default = []
+dynamic = ["ryzenadj-sys/dynamic"]
