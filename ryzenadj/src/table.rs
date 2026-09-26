@@ -12,19 +12,44 @@ use ryzenadj_sys as sys;
 
 pub mod reading;
 
+/// Exclusive borrowed access to a handle's PM Table cache.
+///
+/// Obtain a table through [`RyzenAdj::power_table`], which refreshes the cache.
+/// Reading methods access cached data; [`Self::refresh`] updates it explicitly.
+/// Structured readings are owned copies whose fields independently map NaN to
+/// `None`. [`Self::values`] instead borrows the raw floats, including NaNs.
 pub struct PowerTable<'a> {
     pub(super) owner: &'a mut RyzenAdj,
 }
 
 impl PowerTable<'_> {
+    /// Updates the C cache and reports the C refresh result.
     pub fn refresh(&mut self) -> Result<()> {
         unsafe { sys::refresh_table(self.owner.as_raw()) }.check()
     }
 
+    /// Returns the raw PM Table layout version.
     pub fn version(&self) -> u32 {
         unsafe { sys::get_table_ver(self.owner.as_raw()) }
     }
 
+    /// Borrows the raw cached floats, preserving NaNs. Length is in float elements.
+    ///
+    /// End the slice borrow before refreshing the cache:
+    ///
+    /// ```no_run
+    /// use ryzenadj::{error::Result, table::PowerTable};
+    ///
+    /// fn inspect_and_refresh(table: &mut PowerTable<'_>) -> Result<()> {
+    ///     {
+    ///         let values = table.values();
+    ///         println!("Cached float count: {}", values.len());
+    ///     }
+    ///     table.refresh()?;
+    ///     println!("Refreshed float count: {}", table.values().len());
+    ///     Ok(())
+    /// }
+    /// ```
     pub fn values(&self) -> &[f32] {
         let ptr = unsafe { sys::get_table_values(self.owner.as_raw()) };
 

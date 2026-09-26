@@ -1,3 +1,11 @@
+//! Rust wrapper for the bundled RyzenAdj C library.
+//!
+//! # Upstream limitations
+//!
+//! The C Windows backend may crash during cleanup before PM Table initialization
+//! or after some initialization failures. C's STAPM time setter also has switch
+//! fallthroughs that can send a second request and return its status.
+
 use crate::{
     error::{Error, Result, StatusCode},
     family::RyzenFamily,
@@ -41,12 +49,17 @@ impl Drop for InstanceGuard {
     }
 }
 
+/// Owns a C RyzenAdj handle and releases it through C cleanup on drop.
 pub struct RyzenAdj {
     raw: NonNull<sys::_ryzen_access>,
     _instance_guard: InstanceGuard,
 }
 
 impl RyzenAdj {
+    /// Creates a handle without initializing the PM Table cache.
+    ///
+    /// Returns [`Error::AlreadyInUse`] if another wrapper handle exists, or
+    /// [`Error::InitializationFailed`] if C returns a null handle.
     pub fn new() -> Result<Self> {
         let guard = InstanceGuard::acquire()?;
         let raw_ptr = unsafe { sys::init_ryzenadj() };
@@ -59,6 +72,7 @@ impl RyzenAdj {
         })
     }
 
+    /// Returns the CPU family stored in the C handle during initialization.
     pub fn cpu_family(&self) -> RyzenFamily {
         let raw = unsafe { sys::get_cpu_family(self.as_raw()) };
 
@@ -74,6 +88,7 @@ impl RyzenAdj {
         unsafe { sys::get_bios_if_ver(self.as_raw()) }
     }
 
+    /// Refreshes the C PM Table cache and returns an exclusive borrowed view.
     pub fn power_table(&mut self) -> Result<PowerTable<'_>> {
         unsafe { sys::refresh_table(self.as_raw()) }.check()?;
 
